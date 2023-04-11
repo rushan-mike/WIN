@@ -4,7 +4,9 @@ param (
     [switch]$target,
     [switch]$remote,
     [switch]$run,
-    [switch]$check
+    [switch]$check,
+    [switch]$id,
+    [switch]$clear
 )
 
 try 
@@ -19,6 +21,7 @@ Please specify a switch
 -run
 -check
 -id
+-clear
 "
     if ($port) {
         $port_list = @()
@@ -57,8 +60,12 @@ Please specify a switch
         Write-Host $env:target_list
         Write-Host "> remote_list =" -NoNewline
         Write-Host $env:remote_list
-        Write-Host "> cred_is_set =" -NoNewline
-        Write-Host $env:remote_list
+        Write-Host "> domain =" -NoNewline
+        Write-Host $domain
+        Write-Host "> username =" -NoNewline
+        Write-Host $username
+        Write-Host "> password =" -NoNewline
+        Write-Host $password
         $msg = ""
     }
 
@@ -107,7 +114,7 @@ Please specify a switch
 
                             try{
                                 $target_ip = (Resolve-DnsName -Name $target -Type A).IPAddress
-                                # fix to use first resolved IP
+                                
 
                                 $tcpClient = New-Object System.Net.Sockets.TcpClient
                                 $tcpClient.ReceiveTimeout = 5000  # 5 seconds
