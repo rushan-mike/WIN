@@ -69,7 +69,18 @@ Please specify a switch
         $msg = ""
     }
 
-    elseif($id){
+    elseif ($clear) {
+        
+        Remove-Item -Path $env:port_list
+        Remove-Item -Path $env:target_list
+        Remove-Item -Path $env:remote_list
+        $domain = $null
+        $username = $null
+        $password = $null
+        $msg = "Done"
+    }
+
+    elseif ($id) {
         $domain = $null
         $domain = Read-Host "> domain : "
         $username = $null
@@ -81,7 +92,6 @@ Please specify a switch
         $cred = $null
         $cred = New-Object System.Management.Automation.PSCredential -argumentlist "$domain\$username",$securePassword
     }
-
 
     elseif ($run) {
         $port_list = @()
@@ -113,23 +123,30 @@ Please specify a switch
                             # Test-NetConnection -ComputerName $target -port $port
 
                             try{
+                                
                                 $target_ip = (Resolve-DnsName -Name $target -Type A).IPAddress
                                 
+                                $target_ip_array = $null
+                                $target_ip_array = @()
+                                $target_ip_array += $target_ip
 
-                                $tcpClient = New-Object System.Net.Sockets.TcpClient
-                                $tcpClient.ReceiveTimeout = 5000  # 5 seconds
-                                $tcpClient.SendTimeout = 5000  # 5 seconds
+                                foreach ($target_ip in $target_ip_array){
 
-                                try {
-                                    $tcpClient.Connect($target_ip, $port)
-                                    Write-Host "$target : $target_ip : $port : open"
-                                }
-                                
-                                catch {
-                                    Write-Host "$target : $target_ip : $port : closed"
-                                }
-                                finally {
-                                    $tcpClient.Close()
+                                    $tcpClient = New-Object System.Net.Sockets.TcpClient
+                                    $tcpClient.ReceiveTimeout = 5000  # 5 seconds
+                                    $tcpClient.SendTimeout = 5000  # 5 seconds
+
+                                    try {
+                                        $tcpClient.Connect($target_ip, $port)
+                                        Write-Host "$target : $target_ip : $port : open"
+                                    }
+                                    
+                                    catch {
+                                        Write-Host "$target : $target_ip : $port : closed"
+                                    }
+                                    finally {
+                                        $tcpClient.Close()
+                                    }
                                 }
                             }
                             
