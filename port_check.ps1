@@ -13,14 +13,14 @@ try
 {
     $i = 0
     $msg = "
-Please specify a switch
+-->> Please specify a switch <<--
 
 -port
 -target
 -remote
--run
--check
 -id
+-check
+-run
 -clear
 "
     if ($port) {
@@ -54,43 +54,44 @@ Please specify a switch
     }
 
     elseif ($check) {
-        Write-Host "> port_list = " -NoNewline
+        Write-Host ""
+        Write-Host "> port list     ->>   " -NoNewline
         Write-Host $env:port_list
-        Write-Host "> target_list =" -NoNewline
+        Write-Host "> target list   ->>   " -NoNewline
         Write-Host $env:target_list
-        Write-Host "> remote_list =" -NoNewline
+        Write-Host "> remote list   ->>   " -NoNewline
         Write-Host $env:remote_list
-        Write-Host "> domain =" -NoNewline
-        Write-Host $domain
-        Write-Host "> username =" -NoNewline
-        Write-Host $username
-        Write-Host "> password =" -NoNewline
-        Write-Host $password
+        Write-Host "> domain        ->>   " -NoNewline
+        Write-Host $env:remote_domain
+        Write-Host "> username      ->>   " -NoNewline
+        Write-Host $env:remote_username
+        Write-Host "> password      ->>   " -NoNewline
+        Write-Host $env:remote_password
         $msg = ""
     }
 
     elseif ($clear) {
         
-        Remove-Item -Path $env:port_list
-        Remove-Item -Path $env:target_list
-        Remove-Item -Path $env:remote_list
-        $domain = $null
-        $username = $null
-        $password = $null
-        $msg = "Done"
+        if ($env:port_list) {Remove-Item -Path Env:port_list}
+        if ($env:target_list) {Remove-Item -Path Env:target_list}
+        if ($env:remote_list) {Remove-Item -Path Env:remote_list}
+        if ($env:remote_domain) {Remove-Item -Path Env:remote_domain}
+        if ($env:remote_username) {Remove-Item -Path Env:remote_username}
+        if ($env:remote_password) {Remove-Item -Path Env:remote_password}
+        if ($env:remote_securePassword) {Remove-Item -Path Env:remote_securePassword}
+        $msg = "`nDone`n"
     }
 
     elseif ($id) {
-        $domain = $null
-        $domain = Read-Host "> domain : "
-        $username = $null
-        $username = Read-Host "> username : "
-        $password = $null
-        $password = Read-Host "> password : " -AsSecureString
-        $securePassword = $null
-        $securePassword = ConvertFrom-SecureString -SecureString $password
-        $cred = $null
-        $cred = New-Object System.Management.Automation.PSCredential -argumentlist "$domain\$username",$securePassword
+        Write-Host ""
+        $remote_domain = $null
+        $remote_domain = Read-Host "> domain "
+        $remote_username = $null
+        $remote_username = Read-Host "> username "
+        $remote_password = $null
+        $remote_password = Read-Host "> password "
+        $remote_securePassword = $null
+        $remote_securePassword = ConvertTo-SecureString -AsPlainText $remote_password
     }
 
     elseif ($run) {
@@ -110,6 +111,18 @@ Please specify a switch
             $remote_list_string = $null
             $remote_list_string = $env:remote_list
             $remote_list = $remote_list_string.Split(",")
+
+            $remote_domain = $null
+            $remote_domain = $env:remote_domain
+
+            $remote_username = $null
+            $remote_username = $env:remote_username
+
+            $remote_securePassword = $null
+            $remote_securePassword = $env:remote_securePassword
+
+            $cred = $null
+            $cred = New-Object System.Management.Automation.PSCredential($remote_username,$remote_securePassword)
 
             foreach ($remote in $remote_list) {
                 $session = $null
@@ -181,7 +194,7 @@ finally
         $port_list_string = $port_list -join ","
         Set-Item -Path Env:port_list -Value $null
         Set-Item -Path Env:port_list -Value $port_list_string
-        $msg = "Saved"
+        $msg = "`n`nSaved`n"
     }
 
     elseif ($target) {
@@ -189,7 +202,7 @@ finally
         $target_list_string = $target_list -join ","
         Set-Item -Path Env:target_list -Value $null
         Set-Item -Path Env:target_list -Value $target_list_string
-        $msg = "Saved"
+        $msg = "`n`nSaved`n"
     }
 
     elseif ($remote) {
@@ -197,7 +210,19 @@ finally
         $remote_list_string = $remote_list -join ","
         Set-Item -Path Env:remote_list -Value $null
         Set-Item -Path Env:remote_list -Value $remote_list_string
-        $msg = "Saved"
+        $msg = "`n`nSaved`n"
+    }
+
+    elseif($id){
+        Set-Item -Path Env:remote_domain -Value $null
+        Set-Item -Path Env:remote_domain -Value $remote_domain
+        Set-Item -Path Env:remote_username -Value $null
+        Set-Item -Path Env:remote_username -Value $remote_username
+        Set-Item -Path Env:remote_password -Value $null
+        Set-Item -Path Env:remote_password -Value $remote_password
+        Set-Item -Path Env:remote_securePassword -Value $null
+        Set-Item -Path Env:remote_securePassword -Value $remote_securePassword
+        $msg = "`nDone`n"
     }
     
     Write-Host $msg   
