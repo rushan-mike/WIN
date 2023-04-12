@@ -138,8 +138,13 @@ try
                             # Test-NetConnection -ComputerName $target -port $port
 
                             try{
-                                
-                                $target_ip = (Resolve-DnsName -Name $target_value -Type A).IPAddress
+
+                                if ($target_value -match "\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}") {
+                                    $target_ip = $target_value
+                                    $target_value = "N/A"
+                                } else {
+                                    $target_ip = (Resolve-DnsName -Name $target_value -Type A).IPAddress
+                                }
                                 
                                 $target_ip_array = $null
                                 $target_ip_array = @()
@@ -153,11 +158,11 @@ try
 
                                     try {
                                         $tcpClient.Connect($target_ip, $port_value)
-                                        Write-Host "$target : $target_ip : $port : open"
+                                        Write-Host "$target_value -->> $target_ip -->> $port_value -->> Open"
                                     }
                                     
                                     catch {
-                                        Write-Host "$target : $target_ip : $port : closed"
+                                        Write-Host "$target_value -->> $target_ip -->> $port_value -->> Closed"
                                     }
                                     finally {
                                         $tcpClient.Close()
@@ -200,8 +205,7 @@ try
                         $target_value = "N/A"
                     } else {
                         $target_ip = (Resolve-DnsName -Name $target_value -Type A).IPAddress
-                    }
-                    
+                    } 
                     
                     $target_ip_array = $null
                     $target_ip_array = @()
@@ -215,11 +219,11 @@ try
 
                         try {
                             $tcpClient.Connect($target_ip, $port_value)
-                            Write-Host "$target_value : $target_ip : $port_value : open"
+                            Write-Host "$target_value -->> $target_ip -->> $port_value -->> Open"
                         }
                         
                         catch {
-                            Write-Host "$target_value : $target_ip : $port_value : closed"
+                            Write-Host "$target_value -->> $target_ip -->> $port_value -->> Closed"
                         }
                         finally {
                             $tcpClient.Close()
