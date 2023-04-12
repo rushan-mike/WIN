@@ -94,6 +94,7 @@ try
     }
 
     elseif ($run) {
+        Write-Host ""
         $port_list = @()
         $target_list = @()
         $remote_list = @()
@@ -186,6 +187,7 @@ try
     }
 
     elseif ($runlocal){
+        Write-Host ""
         $port_list = @()
         $target_list = @()
 
