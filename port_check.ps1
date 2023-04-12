@@ -6,7 +6,8 @@ param (
     [switch]$run,
     [switch]$check,
     [switch]$id,
-    [switch]$clear
+    [switch]$clear,
+    [switch]$runlocal
 )
 
 try 
@@ -22,6 +23,7 @@ try
 -check
 -run
 -clear
+-runlocal
 "
     if ($port) {
         $port_list = @()
@@ -78,7 +80,6 @@ try
         if ($env:remote_domain) {Remove-Item -Path Env:remote_domain}
         if ($env:remote_username) {Remove-Item -Path Env:remote_username}
         if ($env:remote_password) {Remove-Item -Path Env:remote_password}
-        if ($env:remote_securePassword) {Remove-Item -Path Env:remote_securePassword}
         $msg = "`nDone`n"
     }
 
@@ -90,8 +91,6 @@ try
         $remote_username = Read-Host "> username "
         $remote_password = $null
         $remote_password = Read-Host "> password "
-        $remote_securePassword = $null
-        $remote_securePassword = ConvertTo-SecureString -AsPlainText $remote_password
     }
 
     elseif ($run) {
@@ -118,26 +117,29 @@ try
             $remote_username = $null
             $remote_username = $env:remote_username
 
+            $remote_password = $null
+            $remote_password = $env:remote_password
+
             $remote_securePassword = $null
-            $remote_securePassword = $env:remote_securePassword
+            $remote_securePassword = ConvertTo-SecureString  $remote_password -AsPlainText -Force
 
             $cred = $null
             $cred = New-Object System.Management.Automation.PSCredential($remote_username,$remote_securePassword)
 
-            foreach ($remote in $remote_list) {
+            foreach ($remote_value in $remote_list) {
                 $session = $null
-                $session = New-PSSession -ComputerName $remote -Credential $cred
+                $session = New-PSSession -ComputerName $remote_value -Credential $cred
 
-                foreach ($target in $target_list) {
-                    foreach ($port in $port_list) {
+                foreach ($target_value in $target_list) {
+                    foreach ($port_value in $port_list) {
                         Invoke-Command -Session $session -ScriptBlock {
-                            param($target,$port)
+                            param($target_value,$port_value)
                             
                             # Test-NetConnection -ComputerName $target -port $port
 
                             try{
                                 
-                                $target_ip = (Resolve-DnsName -Name $target -Type A).IPAddress
+                                $target_ip = (Resolve-DnsName -Name $target_value -Type A).IPAddress
                                 
                                 $target_ip_array = $null
                                 $target_ip_array = @()
@@ -150,7 +152,7 @@ try
                                     $tcpClient.SendTimeout = 5000  # 5 seconds
 
                                     try {
-                                        $tcpClient.Connect($target_ip, $port)
+                                        $tcpClient.Connect($target_ip, $port_value)
                                         Write-Host "$target : $target_ip : $port : open"
                                     }
                                     
@@ -166,7 +168,7 @@ try
                             catch [Microsoft.DnsClient.Commands.ResolveDnsNameException] {
                                 Write-Host "Unable to resolve $target"
                             }
-                        } -ArgumentList $target $port
+                        } -ArgumentList $target_value $port_value
                     }
                 }
 
@@ -175,6 +177,60 @@ try
 
             Write-Host "> " -NoNewline
 
+        }
+    }
+
+    elseif ($runlocal){
+        $port_list = @()
+        $target_list = @()
+
+        $port_list_string = $null
+        $port_list_string = $env:port_list
+        $port_list = $port_list_string.Split(",")
+
+        $target_list_string = $null
+        $target_list_string = $env:target_list
+        $target_list = $target_list_string.Split(",")
+
+        foreach ($target_value in $target_list) {
+            foreach ($port_value in $port_list) {
+                try{
+                    if ($target_value -match "\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}") {
+                        $target_ip = $target_value
+                        $target_value = "N/A"
+                    } else {
+                        $target_ip = (Resolve-DnsName -Name $target_value -Type A).IPAddress
+                    }
+                    
+                    
+                    $target_ip_array = $null
+                    $target_ip_array = @()
+                    $target_ip_array += $target_ip
+
+                    foreach ($target_ip in $target_ip_array){
+
+                        $tcpClient = New-Object System.Net.Sockets.TcpClient
+                        $tcpClient.ReceiveTimeout = 5000  # 5 seconds
+                        $tcpClient.SendTimeout = 5000  # 5 seconds
+
+                        try {
+                            $tcpClient.Connect($target_ip, $port_value)
+                            Write-Host "$target_value : $target_ip : $port_value : open"
+                        }
+                        
+                        catch {
+                            Write-Host "$target_value : $target_ip : $port_value : closed"
+                        }
+                        finally {
+                            $tcpClient.Close()
+                        }
+                    }
+                }
+                
+                catch [Microsoft.DnsClient.Commands.ResolveDnsNameException] {
+                    Write-Host "Unable to resolve $target"
+                }
+            }
         }
     }
 
@@ -220,8 +276,6 @@ finally
         Set-Item -Path Env:remote_username -Value $remote_username
         Set-Item -Path Env:remote_password -Value $null
         Set-Item -Path Env:remote_password -Value $remote_password
-        Set-Item -Path Env:remote_securePassword -Value $null
-        Set-Item -Path Env:remote_securePassword -Value $remote_securePassword
         $msg = "`nDone`n"
     }
     
