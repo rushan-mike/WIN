@@ -125,7 +125,7 @@ try
             $remote_securePassword = ConvertTo-SecureString  $remote_password -AsPlainText -Force
 
             $cred = $null
-            $cred = New-Object System.Management.Automation.PSCredential($remote_username,$remote_securePassword)
+            $cred = New-Object System.Management.Automation.PSCredential ($remote_username,$remote_securePassword)
 
             foreach ($remote_value in $remote_list) {
                 $session = $null

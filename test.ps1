@@ -1,6 +1,8 @@
+Start-Process powershell -Verb runAs
+
 $username = ".\michael"
 $password = ConvertTo-SecureString "1234" -AsPlainText -Force
-$credential = New-Object System.Management.Automation.PSCredential($username, $password)
+$credential = New-Object System.Management.Automation.PSCredential ($username,$password)
 
 Test-WSMan -ComputerName 192.168.1.68 -Credential $credential -Authentication Negotiate
 
@@ -29,4 +31,13 @@ Get-ChildItem -Path Cert:\CurrentUser\My
 
 Get-ChildItem -Path WSMan:\localhost\Service\Auth\
 
-Set-Item -Path WSMan:\localhost\Service\Auth\CertificateThumbprint -Value <thumbprint>
+Set-Item -Path WSMan:\localhost\Service\Auth\CertificateThumbprint -Value thumbprint
+
+
+Get-Item WSMan:\localhost\Service\AllowUnencrypted
+
+Set-Item WSMan:\localhost\Service\AllowUnencrypted $true
+
+Restart-Service WinRM
+
+
