@@ -26,7 +26,9 @@ try
 -runlocal
 "
     if ($port) {
+
         $port_list = @()
+
         while ($i -eq 0)
         {
             Write-Host "> " -NoNewline
@@ -36,7 +38,9 @@ try
     }
 
     elseif ($target) {
+
         $target_list = @()
+
         while ($i -eq 0)
         {
             Write-Host "> " -NoNewline
@@ -46,7 +50,9 @@ try
     }
 
     elseif ($remote) {
+
         $remote_list = @()
+
         while ($i -eq 0)
         {
             Write-Host "> " -NoNewline
@@ -56,6 +62,7 @@ try
     }
 
     elseif ($check) {
+
         Write-Host ""
         Write-Host "> port list     ->>   " -NoNewline
         Write-Host $env:port_list
@@ -70,6 +77,7 @@ try
         Write-Host "> password      ->>   " -NoNewline
         Write-Host $env:remote_password
         $msg = ""
+
     }
 
     elseif ($clear) {
@@ -84,6 +92,7 @@ try
     }
 
     elseif ($id) {
+
         Write-Host ""
         $remote_domain = $null
         $remote_domain = Read-Host "> domain "
@@ -91,103 +100,109 @@ try
         $remote_username = Read-Host "> username "
         $remote_password = $null
         $remote_password = Read-Host "> password "
+
     }
 
     elseif ($run) {
+
         Write-Host ""
+
         $port_list = @()
         $target_list = @()
         $remote_list = @()
-        while ($i -eq 0)
-        {
-            $port_list_string = $null
-            $port_list_string = $env:port_list
-            $port_list = $port_list_string.Split(",")
 
-            $target_list_string = $null
-            $target_list_string = $env:target_list
-            $target_list = $target_list_string.Split(",")
+        $port_list_string = $null
+        $port_list_string = $env:port_list
+        $port_list = $port_list_string.Split(",")
 
-            $remote_list_string = $null
-            $remote_list_string = $env:remote_list
-            $remote_list = $remote_list_string.Split(",")
+        $target_list_string = $null
+        $target_list_string = $env:target_list
+        $target_list = $target_list_string.Split(",")
 
-            $remote_domain = $null
-            $remote_domain = $env:remote_domain
+        $remote_list_string = $null
+        $remote_list_string = $env:remote_list
+        $remote_list = $remote_list_string.Split(",")
 
-            $remote_username = $null
-            $remote_username = $env:remote_username
+        $remote_domain = $null
+        $remote_domain = $env:remote_domain
 
-            $remote_password = $null
-            $remote_password = $env:remote_password
+        $remote_username = $null
+        $remote_username = $env:remote_username
 
-            $remote_securePassword = $null
-            $remote_securePassword = ConvertTo-SecureString  $remote_password -AsPlainText -Force
+        $remote_password = $null
+        $remote_password = $env:remote_password
 
-            $cred = $null
-            $cred = New-Object System.Management.Automation.PSCredential ($remote_username,$remote_securePassword)
+        $remote_securePassword = $null
+        $remote_securePassword = ConvertTo-SecureString  $remote_password -AsPlainText -Force
 
-            foreach ($remote_value in $remote_list) {
-                $session = $null
-                $session = New-PSSession -ComputerName $remote_value -Credential $cred
+        $cred = $null
+        $cred = New-Object System.Management.Automation.PSCredential ($remote_username,$remote_securePassword)
 
-                foreach ($target_value in $target_list) {
-                    foreach ($port_value in $port_list) {
-                        Invoke-Command -Session $session -ScriptBlock {
-                            param($target_value,$port_value)
+        foreach ($remote_value in $remote_list) {
+            $session = $null
+            $session = New-PSSession -ComputerName $remote_value -Credential $cred
+
+            foreach ($target_value in $target_list) {
+                foreach ($port_value in $port_list) {
+                    Invoke-Command -Session $session -ScriptBlock {
+                        param($target_value,$port_value)
+                        
+                        # Test-NetConnection -ComputerName $target -port $port
+
+                        try{
+
+                            if ($target_value -match "\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}") {
+                                $target_ip = $target_value
+                                $target_value = "N/A"
+                            }
                             
-                            # Test-NetConnection -ComputerName $target -port $port
+                            else {
+                                $target_ip = (Resolve-DnsName -Name $target_value -Type A).IPAddress
+                            }
+                            
+                            $target_ip_array = $null
+                            $target_ip_array = @()
+                            $target_ip_array += $target_ip
 
-                            try{
+                            foreach ($target_ip in $target_ip_array){
 
-                                if ($target_value -match "\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}") {
-                                    $target_ip = $target_value
-                                    $target_value = "N/A"
-                                } else {
-                                    $target_ip = (Resolve-DnsName -Name $target_value -Type A).IPAddress
+                                $tcpClient = New-Object System.Net.Sockets.TcpClient
+                                $tcpClient.ReceiveTimeout = 5000  # 5 seconds
+                                $tcpClient.SendTimeout = 5000  # 5 seconds
+
+                                try {
+                                    $tcpClient.Connect($target_ip, $port_value)
+                                    Write-Host "$target_value -->> $target_ip -->> $port_value -->> Open"
                                 }
                                 
-                                $target_ip_array = $null
-                                $target_ip_array = @()
-                                $target_ip_array += $target_ip
+                                catch {
+                                    Write-Host "$target_value -->> $target_ip -->> $port_value -->> Closed"
+                                }
 
-                                foreach ($target_ip in $target_ip_array){
-
-                                    $tcpClient = New-Object System.Net.Sockets.TcpClient
-                                    $tcpClient.ReceiveTimeout = 5000  # 5 seconds
-                                    $tcpClient.SendTimeout = 5000  # 5 seconds
-
-                                    try {
-                                        $tcpClient.Connect($target_ip, $port_value)
-                                        Write-Host "$target_value -->> $target_ip -->> $port_value -->> Open"
-                                    }
-                                    
-                                    catch {
-                                        Write-Host "$target_value -->> $target_ip -->> $port_value -->> Closed"
-                                    }
-                                    finally {
-                                        $tcpClient.Close()
-                                    }
+                                finally {
+                                    $tcpClient.Close()
                                 }
                             }
-                            
-                            catch [Microsoft.DnsClient.Commands.ResolveDnsNameException] {
-                                Write-Host "Unable to resolve $target"
-                            }
-                        } -ArgumentList $target_value $port_value
-                    }
-                }
+                        }
+                        
+                        catch [Microsoft.DnsClient.Commands.ResolveDnsNameException] {
+                            Write-Host "Unable to resolve $target"
+                        }
 
-                remove-pssession -session $session
+                    } -ArgumentList $target_value $port_value
+                }
             }
 
-            Write-Host "> " -NoNewline
-
+            remove-pssession -session $session
         }
+
+        Write-Host "> " -NoNewline
     }
 
     elseif ($runlocal){
+
         Write-Host ""
+
         $port_list = @()
         $target_list = @()
 
@@ -205,7 +220,9 @@ try
                     if ($target_value -match "\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}") {
                         $target_ip = $target_value
                         $target_value = "N/A"
-                    } else {
+                    }
+                    
+                    else {
                         $target_ip = (Resolve-DnsName -Name $target_value -Type A).IPAddress
                     } 
                     
@@ -227,6 +244,7 @@ try
                         catch {
                             Write-Host "$target_value -->> $target_ip -->> $port_value -->> Closed"
                         }
+                        
                         finally {
                             $tcpClient.Close()
                         }
@@ -238,6 +256,7 @@ try
                 }
             }
         }
+        
         $msg = ""
     }
 
