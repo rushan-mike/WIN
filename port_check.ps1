@@ -76,6 +76,7 @@ try
         Write-Host $env:remote_username
         Write-Host "> password      ->>   " -NoNewline
         Write-Host $env:remote_password
+
         $msg = ""
 
     }
@@ -88,6 +89,7 @@ try
         if ($env:remote_domain) {Remove-Item -Path Env:remote_domain}
         if ($env:remote_username) {Remove-Item -Path Env:remote_username}
         if ($env:remote_password) {Remove-Item -Path Env:remote_password}
+
         $msg = "`nDone`n"
     }
 
@@ -189,7 +191,7 @@ try
                             Write-Host "Unable to resolve $target"
                         }
 
-                    } -ArgumentList $target_value $port_value
+                    } -ArgumentList $target_value,$port_value
                 }
             }
 
@@ -244,7 +246,7 @@ try
                         catch {
                             Write-Host "$target_value -->> $target_ip -->> $port_value -->> Closed"
                         }
-                        
+
                         finally {
                             $tcpClient.Close()
                         }
@@ -263,8 +265,8 @@ try
 }
 
 catch [Management.Automation.MethodInvocationException] {
-    if ($_.Exception.InnerException.GetType().Name -eq 'OperationCanceledException') 
-    {
+
+    if ($_.Exception.InnerException.GetType().Name -eq 'OperationCanceledException') {
         exit 0
     }
 }

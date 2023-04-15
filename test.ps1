@@ -19,6 +19,9 @@ Invoke-Command -Session $session -ScriptBlock {} -ArgumentList
 
 Invoke-Command -Session $session -ScriptBlock {Test-NetConnection -ComputerName 192.168.1.1 -port 80}
 
+Invoke-Command -Session $session -ScriptBlock {param($target_value,$port_value) Test-NetConnection -ComputerName $target_value -port $port_value} -ArgumentList 192.168.1.1 80
+
+
 
 
 Get-Item -Path WSMan:\localhost\Client\TrustedHosts
