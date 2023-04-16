@@ -1,5 +1,9 @@
 Start-Process powershell -Verb runAs
 
+
+winrm quickconfig
+
+
 $username = "michael"
 $password = ConvertTo-SecureString "1234" -AsPlainText -Force
 $credential = New-Object System.Management.Automation.PSCredential ($username,$password)
@@ -8,11 +12,14 @@ Test-WSMan -ComputerName 192.168.1.68 -Credential $credential -Authentication Ne
 
 
 
+
 $session = New-PSSession -ComputerName 192.168.1.68
 
 Get-PSSession -ComputerName 192.168.1.68
 
 Remove-PSsession -session $session
+
+
 
 
 Invoke-Command -Session $session -ScriptBlock {} -ArgumentList
@@ -82,3 +89,11 @@ winrm create winrm/config/Listener?Address=*+Transport=HTTPS @{Hostname="<hostna
 Get-ExecutionPolicy
 
 Enter-PSSession -ComputerName 192.168.1.68 -Credential michael
+
+Get-ChildItem WSMan:\localhost\Service\Auth
+
+Get-ChildItem WSMan:\localhost\Client\Auth
+
+Get-ChildItem WSMan:\localhost\Shell
+
+Get-ChildItem WSMan:\localhost\Listener
