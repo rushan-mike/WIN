@@ -75,3 +75,7 @@ New-SelfSignedCertificate -DnsName "<hostname>" -CertStoreLocation Cert:\LocalMa
 Get-ChildItem -Path Cert:\LocalMachine\My
 
 winrm create winrm/config/Listener?Address=*+Transport=HTTPS @{Hostname="<hostname>";CertificateThumbprint="<thumbprint>"}
+
+
+
+Get-ExecutionPolicy
