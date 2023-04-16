@@ -78,4 +78,7 @@ winrm create winrm/config/Listener?Address=*+Transport=HTTPS @{Hostname="<hostna
 
 
 
+
 Get-ExecutionPolicy
+
+Enter-PSSession -ComputerName 192.168.1.68 -Credential michael
