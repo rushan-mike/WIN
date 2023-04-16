@@ -235,11 +235,11 @@ try
 
                                 try {
                                     $tcpClient.Connect($target_ip, $port_value)
-                                    Write-Host "$target_value -->> $target_ip -->> $port_value -->> Open"
+                                    Write-Host "$env:computername -->> $target_value -->> $target_ip -->> $port_value -->> Open"
                                 }
                                 
                                 catch {
-                                    Write-Host "$target_value -->> $target_ip -->> $port_value -->> Closed"
+                                    Write-Host "$env:computername -->> $target_value -->> $target_ip -->> $port_value -->> Closed"
                                 }
 
                                 finally {
@@ -259,7 +259,7 @@ try
             remove-pssession -session $session
         }
 
-        Write-Host "> " -NoNewline
+        $msg = ""
     }
 
     elseif ($runlocal){
@@ -315,11 +315,11 @@ try
 
                         try {
                             $tcpClient.Connect($target_ip, $port_value)
-                            Write-Host "$target_value -->> $target_ip -->> $port_value -->> Open"
+                            Write-Host "$env:computername -->> $target_value -->> $target_ip -->> $port_value -->> Open"
                         }
                         
                         catch {
-                            Write-Host "$target_value -->> $target_ip -->> $port_value -->> Closed"
+                            Write-Host "$env:computername -->> $target_value -->> $target_ip -->> $port_value -->> Closed"
                         }
 
                         finally {
