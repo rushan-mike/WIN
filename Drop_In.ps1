@@ -13,5 +13,3 @@ Add-Type -AssemblyName System.Windows.Forms
 # $wshell.AppActivate("Untitled - Notepad")
 # Sleep 1
 # $wshell.SendKeys("a")
-
-#@123qwe
